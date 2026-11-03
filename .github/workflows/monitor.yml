@@ -1,0 +1,56 @@
+name: Stock Monitor
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"        # 每 5 分钟一次（GitHub 的最小间隔，实际可能延迟几分钟）
+  workflow_dispatch:
+    inputs:
+      test_email:
+        description: "测试模式：只发测试邮件和测试推送，不检测库存"
+        type: boolean
+        default: false
+
+concurrency:
+  group: stock-monitor
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: 拉取代码
+        uses: actions/checkout@v4
+
+      - name: 安装 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: 安装依赖
+        run: pip install -r requirements.txt
+
+      - name: 安装 Playwright 浏览器
+        run: python -m playwright install --with-deps chromium
+
+      - name: 运行监控
+        env:
+          BARK_KEY: ${{ secrets.BARK_KEY }}
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          MAIL_TO: ${{ secrets.MAIL_TO }}
+          BARK_SERVER: ${{ secrets.BARK_SERVER }}
+        run: python monitor.py ${{ inputs.test_email && '--test-email --test-bark' || '' }}
+
+      - name: 失败时上传截图
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug-${{ github.run_id }}
+          path: screenshots/
+          if-no-files-found: ignore
+          retention-days: 7
