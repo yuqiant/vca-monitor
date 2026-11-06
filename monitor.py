@@ -40,8 +40,9 @@ from pathlib import Path
 
 # ----------------------------- 配置区 -----------------------------
 PRODUCT_URL = (
-    "https://www.vancleefarpels.com/it/en/collections/jewelry/alhambra/"
+    "https://www.vancleefarpels.com/us/en/collections/jewelry/alhambra/"
     "vcard35600---vintage-alhambra-bracelet-5-motifs.html"
+  
 )
 PRODUCT_NAME = "Vintage Alhambra bracelet, 5 motifs (VCARD35600)"
 IN_STOCK_TEXT = "ADD TO BAG"          # 有货按钮文字
